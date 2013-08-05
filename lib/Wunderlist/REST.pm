@@ -2,7 +2,15 @@ package Wunderlist::REST;
 
 use 5.006;
 use strict;
-use warnings FATAL => 'all';
+use warnings;
+use Badger::Class
+	base		=> 'Badger::Base',
+	mutators	=> 'ua uri',
+;
+use LWP::UserAgent;
+use Rose::URI;
+use JSON::XS qw /decode_json/;
+
 
 =head1 NAME
 
@@ -15,6 +23,88 @@ Version 0.01
 =cut
 
 our $VERSION = '0.01';
+our $DEFAULT_URL	= 'https://api.wunderlist.com';
+
+
+sub init
+{
+	(my $self, my $config) = @_;
+	
+	$self->{config} = $config;
+
+
+	$self->ua(new LWP::UserAgent);
+	$self->ua->timeout(5);
+
+	$self->uri(Rose::URI->new(
+		exists $self->{config}{url} ? $self->{config}{url} : $DEFAULT_URL,
+	));
+	$self->login();
+
+	$self;
+}
+
+
+sub login
+{
+	my $self = shift;
+
+	my $uri = $self->uri->clone;
+	$uri->path('/login');
+	
+	my $response = $self->ua->post($uri->as_string,
+		[
+			email		=> $self->{config}{login},
+			password	=> $self->{config}{password},
+		],
+	);
+	my $data = decode_json($response->content);
+	if(exists $data->{errors})
+	{
+		$self->error('Login error: ' . $data->{errors}{message});
+		return 0;
+	}
+	$self->{authToken} = $data->{token};
+	return 1;
+}
+
+sub me
+{
+	my $self = shift;
+
+	$self->call('get', '/me');
+}
+
+sub call
+{
+	my $self = shift;
+	my $what = shift;
+	my $location = shift;
+
+	my $uri = $self->uri->clone;
+	$uri->path($location);
+	
+	my $response;
+
+	$response = $self->ua->$what(
+		$uri->as_string,
+		$self->_authData(),
+		@_,
+	);
+
+	if($response->is_error)
+	{
+		$self->error($response->status_line);
+	}
+	return decode_json($response->content);
+}
+
+sub _authData
+{
+	my $self = shift;
+
+	return Authorization	=> 'Bearer ' . $self->{authToken};
+}
 
 
 =head1 SYNOPSIS
