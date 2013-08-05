@@ -1,0 +1,15 @@
+t/real_auth_data/
+Makefile
+Makefile.old
+*.swp
+blib*
+pm_to_blib
+cover_db
+Build
+Build.bat
+_build*
+pm_to_blib*
+*.tar.gz
+.lwpcookies
+pod2htm*.tmp
+Redmine-KPI-*
