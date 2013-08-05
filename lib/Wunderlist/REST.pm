@@ -58,11 +58,14 @@ sub login
 			password	=> $self->{config}{password},
 		],
 	);
+	if($response->is_error and $response->code != 404) # 404 Not Found is returned when auth credentials are bad
+	{
+		$self->error('Login HTTP error: ' . $response->status_line);
+	}
 	my $data = decode_json($response->content);
 	if(exists $data->{errors})
 	{
 		$self->error('Login error: ' . $data->{errors}{message});
-		return 0;
 	}
 	$self->{authToken} = $data->{token};
 	return 1;
