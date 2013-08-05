@@ -75,6 +75,13 @@ sub me
 	$self->call('get', '/me');
 }
 
+sub lists
+{
+	my $self = shift;
+
+	return @{$self->call('get', '/me/lists')};
+}
+
 sub call
 {
 	my $self = shift;

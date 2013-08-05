@@ -21,7 +21,7 @@ if(not $login or not $password)
 }
 else
 {
-	plan tests => 3;
+	plan tests => 4;
 }
 
 use Wunderlist::REST;
@@ -48,3 +48,10 @@ my $me = $api->me();
 
 # if email is correctly fetched, it means that authorization works fine
 is($me->{email}, $login, 'Fetch email');
+
+
+my @lists = $api->lists();
+
+ok($#lists > 1, 'More than one list found');
+
+my $listId = $lists[int(rand($#lists-1))]->{id};
