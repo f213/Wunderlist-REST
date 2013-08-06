@@ -14,17 +14,59 @@ use JSON::XS qw /decode_json/;
 
 =head1 NAME
 
-Wunderlist::REST - The great new Wunderlist::REST!
+Wunderlist::REST - Perl module for dealing with L<Wunderlist|https://www.wunderlist.com> api.
 
 =head1 VERSION
 
 Version 0.01
+
+
+=head1 SYNOPSIS
+
+This module utilizes Wunderlist API. Api is undocumented officialy, but it was reverse engineered by bsmt. The documentation can be found L<here|https://wunderpy.readthedocs.org/en/latest/index.html>. You should read that before working with this module.
+
+Currently this module does not support even full CRUD, because i need only create and delete.
+
+
+	use Wunderlist::REST;
+	my $api = Wunderlist::REST->new(
+    		login		=> 'myLogin',
+		password	=> 'myPassword',
+	);
+
+	my $me = $api->me();
+	say $me->{email};
+
+	my $list = $api->addList(
+		[
+			title	=> 'TestList',
+		]
+	);
+
+	my $task = $api->addTask(
+		[
+			title	=> 'TestTask',
+			list_id	=> $list->{id},
+		]
+	);
+
+	my @tasks = $api->tasks();
+	my @lists = $api->lists();
+
+	$api->delTask($task->{id});
+	$api->delList($list->{id});
+    ...
+
 
 =cut
 
 our $VERSION = '0.01';
 our $DEFAULT_URL	= 'https://api.wunderlist.com';
 
+
+=head1 SUBROUTINES/METHODS
+
+=cut
 
 sub init
 {
@@ -71,6 +113,11 @@ sub login
 	return 1;
 }
 
+=head2 $api->me()
+
+Get wunderlist information about the logged in account. L<https://wunderpy.readthedocs.org/en/latest/wunderlist_api/account/me.html>
+
+=cut
 sub me
 {
 	my $self = shift;
@@ -78,12 +125,24 @@ sub me
 	$self->call('get', '/me');
 }
 
+=head2 $api->lists()
+
+Get a list of all wunderlist lists. L<https://wunderpy.readthedocs.org/en/latest/wunderlist_api/lists/lists.html>.
+
+=cut
 sub lists
 {
 	my $self = shift;
 
 	return @{$self->call('get', '/me/lists')};
 }
+
+=head2 $api->addList()
+
+Create a new list, The only parameter Title is needed.
+
+	$api->addList([title	=> 'testList']);
+=cut
 sub addList
 {
 	my $self = shift;
@@ -91,6 +150,12 @@ sub addList
 	return $self->call('post', '/me/lists', @_);
 }
 
+=head2 $api->delList()
+
+Delete an existing list.
+
+	$api->delList($listId);
+=cut
 sub delList
 {
 	my $self = shift;
@@ -99,6 +164,11 @@ sub delList
 	return $self->call('delete', "/$listId");
 }
 
+=head2 $api->tasks();
+
+Get a list of all wunderlist tasks. L<https://wunderpy.readthedocs.org/en/latest/wunderlist_api/tasks/tasks.html>
+
+=cut
 sub tasks
 {
 	my $self = shift;
@@ -106,6 +176,17 @@ sub tasks
 	return @{$self->call('get', '/me/tasks')};
 }
 
+=head2 $api->addTask()
+
+Create a new list, The only parameter Title is needed.
+
+	$api->addList(
+		[
+			title	=> 'testTask',
+			listId	=> $listId,
+		]
+	);
+=cut
 sub addTask
 {
 	my $self = shift;
@@ -113,6 +194,12 @@ sub addTask
 	return $self->call('post', '/me/tasks', @_);
 }
 
+=head2 $api->delTask()
+
+Delete an existing task.
+
+	$api->delList($listId);
+=cut
 sub delTask
 {
 	my $self = shift;
@@ -161,38 +248,6 @@ sub _authData
 }
 
 
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use Wunderlist::REST;
-
-    my $foo = Wunderlist::REST->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
-
 =head1 AUTHOR
 
 Fedor Borshev, C<< <fedor9 at gmail.com> >>
@@ -216,6 +271,10 @@ You can find documentation for this module with the perldoc command.
 You can also look for information at:
 
 =over 4
+
+=item * Github
+
+L<https://github.com/f213/Wunderlist-REST>
 
 =item * RT: CPAN's request tracker (report bugs here)
 
