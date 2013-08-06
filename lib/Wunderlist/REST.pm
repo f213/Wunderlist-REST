@@ -34,7 +34,7 @@ sub init
 
 
 	$self->ua(new LWP::UserAgent);
-	$self->ua->timeout(5);
+	$self->ua->timeout(8);
 
 	$self->uri(Rose::URI->new(
 		exists $self->{config}{url} ? $self->{config}{url} : $DEFAULT_URL,
@@ -84,6 +84,41 @@ sub lists
 
 	return @{$self->call('get', '/me/lists')};
 }
+sub addList
+{
+	my $self = shift;
+
+	return $self->call('post', '/me/lists', @_);
+}
+
+sub delList
+{
+	my $self = shift;
+	my $listId = shift;
+
+	return $self->call('delete', "/$listId");
+}
+
+sub tasks
+{
+	my $self = shift;
+	
+	return @{$self->call('get', '/me/tasks')};
+}
+
+sub addTask
+{
+	my $self = shift;
+	
+	return $self->call('post', '/me/tasks', @_);
+}
+
+sub delTask
+{
+	my $self = shift;
+	my $taskId = shift;
+	return $self->call('delete', "/$taskId");
+}
 
 sub call
 {
@@ -95,12 +130,21 @@ sub call
 	$uri->path($location);
 	
 	my $response;
-
-	$response = $self->ua->$what(
-		$uri->as_string,
-		$self->_authData(),
-		@_,
-	);
+	if(@_)
+	{
+		$response = $self->ua->$what(
+			$uri->as_string,
+			$self->_authData(),
+			Content	=> @_,
+		);
+	}
+	else
+	{
+		$response = $self->ua->$what(
+			$uri->as_string,
+			$self->_authData(),
+		);
+	}
 
 	if($response->is_error)
 	{

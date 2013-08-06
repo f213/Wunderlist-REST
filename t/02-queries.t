@@ -21,7 +21,7 @@ if(not $login or not $password)
 }
 else
 {
-	plan tests => 4;
+	plan tests => 9;
 }
 
 use Wunderlist::REST;
@@ -50,8 +50,37 @@ my $me = $api->me();
 is($me->{email}, $login, 'Fetch email');
 
 
-my @lists = $api->lists();
+my $ret = $api->addList([title	=> 'WunderListRESTTestList']);
+my $listId = $ret->{id};
+ok(length $listId, 'list was created');
 
+my @lists = $api->lists();
 ok($#lists > 1, 'More than one list found');
 
-my $listId = $lists[int(rand($#lists-1))]->{id};
+
+foreach(@lists)
+{
+	pass("We've found created list") if $_->{id} eq $listId;
+}
+
+$ret = $api->addTask([
+		list_id		=> $listId,
+		title		=> 'WunderListTestTask',
+]);
+my $taskId = $ret->{id};
+
+ok(length $taskId, 'task was created');
+
+my @tasks = $api->tasks();
+
+ok($#tasks > 1, 'More than one task found');
+
+foreach(@tasks)
+{
+	pass("We've found created task") if $_->{id} eq $taskId;
+}
+
+$api->delTask($taskId);
+$api->delList($listId);
+
+
