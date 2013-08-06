@@ -1,6 +1,7 @@
 t/real_auth_data/
 Makefile
 Makefile.old
+MYMETA.*
 *.swp
 blib*
 pm_to_blib
