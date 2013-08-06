@@ -5,6 +5,12 @@ use strict;
 use warnings;
 use Badger::Class
 	base		=> 'Badger::Base',
+	config		=> [
+		'login!',
+		'password!',
+		'timeout=5',
+		'url=https://api.wunderlist.com',
+	],
 	mutators	=> 'ua uri',
 ;
 use LWP::UserAgent;
@@ -61,7 +67,6 @@ Currently this module does not support even full CRUD, because i need only creat
 =cut
 
 our $VERSION = '0.01';
-our $DEFAULT_URL	= 'https://api.wunderlist.com';
 
 
 =head1 SUBROUTINES/METHODS
@@ -72,15 +77,13 @@ sub init
 {
 	(my $self, my $config) = @_;
 	
-	$self->{config} = $config;
-
+	$self->{config} = $self->configure($config);
 
 	$self->ua(new LWP::UserAgent);
-	$self->ua->timeout(8);
+	$self->ua->timeout($self->{config}{timeout});
 
-	$self->uri(Rose::URI->new(
-		exists $self->{config}{url} ? $self->{config}{url} : $DEFAULT_URL,
-	));
+	$self->uri(Rose::URI->new($self->{config}{url}));
+
 	$self->login();
 
 	$self;
